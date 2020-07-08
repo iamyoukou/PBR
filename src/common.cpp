@@ -281,8 +281,12 @@ void drawBox(vec3 min, vec3 max) {
 }
 
 /* Mesh class */
-Mesh::Mesh(const string fileName) {
+Mesh::Mesh(const string fileName, bool isPbr) {
   loadObj(fileName);
+
+  // pbr test
+  isPBR = isPbr;
+
   initBuffers();
   initShader();
   initUniform();
@@ -296,7 +300,11 @@ Mesh::~Mesh() {
 }
 
 void Mesh::initShader() {
-  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
+  if (isPBR) {
+    shader = buildShader("./shader/vsPBR.glsl", "./shader/fsPBR.glsl");
+  } else {
+    shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
+  }
 }
 
 void Mesh::initUniform() {
@@ -304,10 +312,15 @@ void Mesh::initUniform() {
   uniView = myGetUniformLocation(shader, "V");
   uniProjection = myGetUniformLocation(shader, "P");
   uniEyePoint = myGetUniformLocation(shader, "eyePoint");
-  uniLightColor = myGetUniformLocation(shader, "lightColor");
-  uniLightPosition = myGetUniformLocation(shader, "lightPosition");
+  uniLightColors = myGetUniformLocation(shader, "lightColors");
+  uniLightPositions = myGetUniformLocation(shader, "lightPositions");
   uniTexBase = myGetUniformLocation(shader, "texBase");
   uniTexNormal = myGetUniformLocation(shader, "texNormal");
+
+  if (isPBR) {
+    uniTexAO = myGetUniformLocation(shader, "texAO");
+    uniTexRough = myGetUniformLocation(shader, "texRough");
+  }
 }
 
 void Mesh::loadObj(const string fileName) {
@@ -509,8 +522,9 @@ void Mesh::setTexture(GLuint &tbo, int texUnit, const string texDir,
   FreeImage_Unload(texImage);
 }
 
-void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
-                vec3 lightPosition, int unitBaseColor, int unitNormal) {
+void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColors[],
+                vec3 lightPositions[], int unitBaseColor, int unitNormal,
+                int unitAO, int unitRough) {
   glUseProgram(shader);
 
   glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
@@ -519,11 +533,16 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
 
   glUniform3fv(uniEyePoint, 1, value_ptr(eye));
 
-  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
-  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
+  glUniform3fv(uniLightColors, 4, value_ptr(lightColors[0]));
+  glUniform3fv(uniLightPositions, 4, value_ptr(lightPositions[0]));
 
   glUniform1i(uniTexBase, unitBaseColor); // change base color
   glUniform1i(uniTexNormal, unitNormal);  // change normal
+
+  if (isPBR) {
+    glUniform1i(uniTexAO, unitAO);       // change ambient occlusion
+    glUniform1i(uniTexRough, unitRough); // change roughness
+  }
 
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, faces.size() * 3);

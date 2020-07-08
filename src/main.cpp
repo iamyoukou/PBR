@@ -4,9 +4,6 @@ GLFWwindow *window;
 
 Mesh *gridPhong, *gridPBR;
 
-vec3 lightPosition = vec3(3.f, 3.f, 3.f);
-vec3 lightColor = vec3(1.f, 1.f, 1.f);
-
 /* for view control */
 float verticalAngle = -2.76603;
 float horizontalAngle = 1.56834;
@@ -23,6 +20,13 @@ vec3 eyeDirection =
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
+// pbr test
+vec3 lightPositions[4] = {vec3(0.0f, 2.0f, 0.0f), vec3(2.0f, 2.0f, 0.0f),
+                          vec3(0.0f, 2.0f, 2.0f), vec3(2.0f, 2.0f, 2.0f)};
+
+vec3 lightColors[4] = {vec3(200.f, 200.f, 200.f), vec3(200.f, 200.f, 200.f),
+                       vec3(200.f, 200.f, 200.f), vec3(200.f, 200.f, 200.f)};
+
 void computeMatricesFromInputs();
 void keyCallback(GLFWwindow *, int, int, int, int);
 
@@ -37,8 +41,8 @@ int main(int argc, char **argv) {
   initOthers();
 
   // prepare mesh data
-  gridPhong = new Mesh("./mesh/grid.obj");
-  gridPBR = new Mesh("./mesh/grid.obj");
+  // gridPhong = new Mesh("./mesh/grid.obj", false);
+  gridPBR = new Mesh("./mesh/grid.obj", true);
 
   initTexture();
   initMatrix();
@@ -59,14 +63,14 @@ int main(int argc, char **argv) {
     computeMatricesFromInputs();
 
     // draw mesh
-    gridPhong->draw(model, view, projection, eyePoint, lightColor,
-                    lightPosition, 12, 13);
+    // gridPhong->draw(model, view, projection, eyePoint, lightColor,
+    //                 lightPosition, 10, 11, -1, -1);
 
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    gridPBR->draw(model2, view, projection, eyePoint, lightColor, lightPosition,
-                  10, 11);
+    gridPBR->draw(model2, view, projection, eyePoint, lightColors,
+                  lightPositions, 12, 13, 14, 15);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -226,13 +230,16 @@ void initMatrix() {
 }
 
 void initTexture() {
-  gridPhong->setTexture(gridPhong->tboBase, 10, "./res/rock_base.jpg",
-                        FIF_JPEG);
-  gridPhong->setTexture(gridPhong->tboNormal, 11, "./res/rock_normal.jpg",
-                        FIF_JPEG);
+  // gridPhong->setTexture(gridPhong->tboBase, 10, "./res/rock_base.jpg",
+  //                       FIF_JPEG);
+  // gridPhong->setTexture(gridPhong->tboNormal, 11, "./res/rock_normal.jpg",
+  //                       FIF_JPEG);
 
   gridPBR->setTexture(gridPBR->tboBase, 12, "./res/rock_base.jpg", FIF_JPEG);
   gridPBR->setTexture(gridPBR->tboNormal, 13, "./res/rock_normal.jpg",
+                      FIF_JPEG);
+  gridPBR->setTexture(gridPBR->tboAO, 14, "./res/rock_ao.jpg", FIF_JPEG);
+  gridPBR->setTexture(gridPBR->tboRough, 15, "./res/rock_roughness.jpg",
                       FIF_JPEG);
 }
 

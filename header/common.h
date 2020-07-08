@@ -38,18 +38,22 @@ public:
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
   GLuint shader;
-  GLuint tboBase, tboNormal;
+  GLuint tboBase, tboNormal, tboAO, tboRough;
   GLint uniModel, uniView, uniProjection;
-  GLint uniEyePoint, uniLightColor, uniLightPosition;
+  GLint uniEyePoint, uniLightColors, uniLightPositions;
   GLint uniTexBase, uniTexNormal;
+  GLint uniTexAO, uniTexRough;
 
   // aabb
   vec3 min, max;
 
   mat4 model, view, projection;
 
+  // pbr test
+  bool isPBR;
+
   /* Constructors */
-  Mesh(const string);
+  Mesh(const string, bool);
   ~Mesh();
 
   /* Member functions */
@@ -57,7 +61,7 @@ public:
   void initBuffers();
   void initShader();
   void initUniform();
-  void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int);
+  void draw(mat4, mat4, mat4, vec3, vec3[], vec3[], int, int, int, int);
   void setTexture(GLuint &, int, const string, FREE_IMAGE_FORMAT);
 
   void translate(vec3);
