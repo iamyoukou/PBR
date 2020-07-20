@@ -5,27 +5,31 @@ GLFWwindow *window;
 Mesh *gridPhong, *gridPBR;
 
 /* for view control */
-float verticalAngle = -2.76603;
-float horizontalAngle = 1.56834;
+float verticalAngle = -2.02068;
+float horizontalAngle = -2.3117;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-mat4 model2;
-vec3 eyePoint = vec3(2.440995, 7.005076, 3.059731);
+vec3 eyePoint = vec3(-7.930749, 5.062508, -7.925124);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
 // pbr test
-vec3 lightPositions[4] = {vec3(0.0f, 2.0f, 0.0f), vec3(2.0f, 2.0f, 0.0f),
-                          vec3(0.0f, 2.0f, 2.0f), vec3(2.0f, 2.0f, 2.0f)};
+vec3 lightPositions[4] = {vec3(10.0f, 3.0f, 10.0f), vec3(-3.0f, 3.0f, -3.0f),
+                          vec3(2.0f, 2.0f, -2.0f), vec3(-5.0f, 5.0f, 5.0f)};
 
-vec3 lightColors[4] = {vec3(200.f, 200.f, 200.f), vec3(200.f, 200.f, 200.f),
-                       vec3(200.f, 200.f, 200.f), vec3(200.f, 200.f, 200.f)};
+vec3 lightColors[4] = {vec3(10.f, 10.f, 10.f), vec3(20.f, 20.f, 20.f),
+                       vec3(30.f, 30.f, 30.f), vec3(40.f, 40.f, 40.f)};
+
+// test
+vector<Point> pts;
+GLuint pointShader;
+GLint uniPointM, uniPointV, uniPointP;
 
 void computeMatricesFromInputs();
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -39,6 +43,13 @@ void releaseResource();
 int main(int argc, char **argv) {
   initGL();
   initOthers();
+
+  for (size_t i = 0; i < 4; i++) {
+    Point p;
+    p.pos = lightPositions[i];
+    p.color = vec3(1.f);
+    pts.push_back(p);
+  }
 
   // prepare mesh data
   // gridPhong = new Mesh("./mesh/grid.obj", false);
@@ -69,8 +80,20 @@ int main(int argc, char **argv) {
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    gridPBR->draw(model2, view, projection, eyePoint, lightColors,
-                  lightPositions, 12, 13, 14, 15);
+    for (int r = -2; r < 3; r++) {
+      for (int c = -2; c < 3; c++) {
+        mat4 tempModel = translate(mat4(1.f), vec3(4.f * r, 0.f, 4.f * c));
+
+        gridPBR->draw(tempModel, view, projection, eyePoint, lightColors,
+                      lightPositions, 12, 13, 14, 15);
+      }
+    }
+
+    glUseProgram(pointShader);
+    glUniformMatrix4fv(uniPointM, 1, GL_FALSE, value_ptr(model));
+    glUniformMatrix4fv(uniPointV, 1, GL_FALSE, value_ptr(view));
+    glUniformMatrix4fv(uniPointP, 1, GL_FALSE, value_ptr(projection));
+    drawPoints(pts);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -190,8 +213,7 @@ void initGL() { // Initialise GLFW
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "With normal mapping",
-                            NULL, NULL);
+  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "PBR", NULL, NULL);
 
   if (window == NULL) {
     std::cout << "Failed to open GLFW window." << std::endl;
@@ -216,17 +238,26 @@ void initGL() { // Initialise GLFW
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST); // must enable depth test!!
+
+  glEnable(GL_PROGRAM_POINT_SIZE);
+  glPointSize(20);
 }
 
-void initOthers() { FreeImage_Initialise(true); }
+void initOthers() {
+  FreeImage_Initialise(true);
+
+  pointShader = buildShader("./shader/vsPoint.glsl", "./shader/fsPoint.glsl");
+  glUseProgram(pointShader);
+  uniPointM = myGetUniformLocation(pointShader, "M");
+  uniPointV = myGetUniformLocation(pointShader, "V");
+  uniPointP = myGetUniformLocation(pointShader, "P");
+}
 
 void initMatrix() {
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
   view = lookAt(eyePoint, eyeDirection, up);
   projection = perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT,
                            nearPlane, farPlane);
-
-  model2 = translate(mat4(1.f), vec3(5.f, 0.f, 0.f));
 }
 
 void initTexture() {
