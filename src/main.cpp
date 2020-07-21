@@ -2,26 +2,26 @@
 
 GLFWwindow *window;
 
-Mesh *gridPhong, *gridPBR;
+Mesh *mesh;
 
 /* for view control */
-float verticalAngle = -2.02068;
-float horizontalAngle = -2.3117;
+float verticalAngle = -2.13668;
+float horizontalAngle = 0.0107599;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(-7.930749, 5.062508, -7.925124);
+vec3 eyePoint = vec3(8.877738, 5.290346, -0.256238);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
 // pbr test
-vec3 lightPositions[4] = {vec3(10.0f, 3.0f, 10.0f), vec3(-3.0f, 3.0f, -3.0f),
-                          vec3(2.0f, 2.0f, -2.0f), vec3(-5.0f, 5.0f, 5.0f)};
+vec3 lightPositions[4] = {vec3(3.0f, 3.0f, 3.0f), vec3(3.0f, 3.0f, -3.0f),
+                          vec3(3.0f, -3.0f, 3.0f), vec3(-3.0f, 3.0f, 3.0f)};
 
 vec3 lightColors[4] = {vec3(10.f, 10.f, 10.f), vec3(20.f, 20.f, 20.f),
                        vec3(30.f, 30.f, 30.f), vec3(40.f, 40.f, 40.f)};
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   initGL();
   initOthers();
 
-  for (size_t i = 0; i < 4; i++) {
+  for (size_t i = 0; i < 8; i++) {
     Point p;
     p.pos = lightPositions[i];
     p.color = vec3(1.f);
@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
   }
 
   // prepare mesh data
-  // gridPhong = new Mesh("./mesh/grid.obj", false);
-  gridPBR = new Mesh("./mesh/grid.obj", true);
+  mesh = new Mesh("./mesh/sphere.obj", true);
 
   initTexture();
   initMatrix();
@@ -73,19 +72,15 @@ int main(int argc, char **argv) {
     // view control
     computeMatricesFromInputs();
 
-    // draw mesh
-    // gridPhong->draw(model, view, projection, eyePoint, lightColor,
-    //                 lightPosition, 10, 11, -1, -1);
-
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    for (int r = -2; r < 3; r++) {
-      for (int c = -2; c < 3; c++) {
+    for (int r = 0; r < 1; r++) {
+      for (int c = 0; c < 1; c++) {
         mat4 tempModel = translate(mat4(1.f), vec3(4.f * r, 0.f, 4.f * c));
 
-        gridPBR->draw(tempModel, view, projection, eyePoint, lightColors,
-                      lightPositions, 12, 13, 14, 15);
+        mesh->draw(tempModel, view, projection, eyePoint, lightColors,
+                   lightPositions, 12, 13, 14, 15);
       }
     }
 
@@ -261,23 +256,15 @@ void initMatrix() {
 }
 
 void initTexture() {
-  // gridPhong->setTexture(gridPhong->tboBase, 10, "./res/rock_base.jpg",
-  //                       FIF_JPEG);
-  // gridPhong->setTexture(gridPhong->tboNormal, 11, "./res/rock_normal.jpg",
-  //                       FIF_JPEG);
-
-  gridPBR->setTexture(gridPBR->tboBase, 12, "./res/rock_base.jpg", FIF_JPEG);
-  gridPBR->setTexture(gridPBR->tboNormal, 13, "./res/rock_normal.jpg",
-                      FIF_JPEG);
-  gridPBR->setTexture(gridPBR->tboAO, 14, "./res/rock_ao.jpg", FIF_JPEG);
-  gridPBR->setTexture(gridPBR->tboRough, 15, "./res/rock_roughness.jpg",
-                      FIF_JPEG);
+  mesh->setTexture(mesh->tboBase, 12, "./res/stone_base.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboNormal, 13, "./res/stone_normal.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboAO, 14, "./res/stone_ao.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboRough, 15, "./res/stone_roughness.jpg", FIF_JPEG);
 }
 
 void releaseResource() {
   glfwTerminate();
   FreeImage_DeInitialise();
 
-  delete gridPhong;
-  delete gridPBR;
+  delete mesh;
 }

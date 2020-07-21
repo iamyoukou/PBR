@@ -93,7 +93,7 @@ void main()
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    vec3 F0 = vec3(0.05);
+    vec3 F0 = vec3(0.75);
     // F0 = mix(F0, albedo, metallic);
 
     // reflectance equation
@@ -139,6 +139,7 @@ void main()
     vec3 ambient = vec3(0.13) * albedo * ao;
 
     vec3 color = ambient + Lo;
+    // color = Lo;
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));
