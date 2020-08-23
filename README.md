@@ -13,7 +13,10 @@ With direct light (e.g. point, directional and spotlight)
 
 ![result](./result/result.png)
 
+![result2](./result/result2.png)
+
 # Reference
+
 [LearnOpenGL: PBR](https://learnopengl.com/PBR/Theory)
 
 [LearnOpenGL: Normal Mapping](https://learnopengl.com/Advanced-Lighting/Normal-Mapping)
