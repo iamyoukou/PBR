@@ -19,3 +19,5 @@ With direct light (e.g. point, directional and spotlight)
 [LearnOpenGL: Normal Mapping](https://learnopengl.com/Advanced-Lighting/Normal-Mapping)
 
 [LearnOpenGL sample code: PBR](https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/6.pbr)
+
+[Texture resource](3dtextures.me)
