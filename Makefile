@@ -17,7 +17,6 @@ all: main
 
 main: main.o common.o
 	$(CXX) $(LINK) $^ -o main
-	rm -f *.o
 
 main.o: $(SRC_DIR)/main.cpp
 	$(CXX) $(COMPILE) $^ -o main.o
@@ -25,7 +24,7 @@ main.o: $(SRC_DIR)/main.cpp
 common.o: $(SRC_DIR)/common.cpp
 	$(CXX) $(COMPILE) $^ -o common.o
 
-.PHONY: clean
+.PHONY: cleanObj
 
 clean:
-	rm -vf main
+	rm -f *.o

@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   initGL();
   initOthers();
 
-  for (size_t i = 0; i < 8; i++) {
+  for (size_t i = 0; i < 4; i++) {
     Point p;
     p.pos = lightPositions[i];
     p.color = vec3(1.f);
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   }
 
   // prepare mesh data
-  mesh = new Mesh("./mesh/sphere.obj", true);
+  mesh = new Mesh("./mesh/sphereQuad.obj", true);
 
   initTexture();
   initMatrix();
@@ -77,10 +77,11 @@ int main(int argc, char **argv) {
     // This can avoid updating vertex buffers.
     for (int r = 0; r < 1; r++) {
       for (int c = 0; c < 1; c++) {
-        mat4 tempModel = translate(mat4(1.f), vec3(4.f * r, 0.f, 4.f * c));
+        mat4 tempModel = translate(mat4(1.f), vec3(2.f * r, 0.f, 2.f * c));
+        tempModel = scale(tempModel, vec3(3.f, 3.f, 3.f));
 
         mesh->draw(tempModel, view, projection, eyePoint, lightColors,
-                   lightPositions, 12, 13, 14, 15);
+                   lightPositions, 12, 13, 14, 15, 16);
       }
     }
 
@@ -236,6 +237,8 @@ void initGL() { // Initialise GLFW
 
   glEnable(GL_PROGRAM_POINT_SIZE);
   glPointSize(20);
+
+  glPatchParameteri(GL_PATCH_VERTICES, 4);
 }
 
 void initOthers() {
@@ -260,6 +263,7 @@ void initTexture() {
   mesh->setTexture(mesh->tboNormal, 13, "./res/stone_normal.jpg", FIF_JPEG);
   mesh->setTexture(mesh->tboAO, 14, "./res/stone_ao.jpg", FIF_JPEG);
   mesh->setTexture(mesh->tboRough, 15, "./res/stone_roughness.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboHeight, 16, "./res/stone_height.jpg", FIF_JPEG);
 }
 
 void releaseResource() {

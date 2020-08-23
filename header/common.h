@@ -41,11 +41,12 @@ public:
   vector<GLuint> vaos;
 
   GLuint shader;
-  GLuint tboBase, tboNormal, tboAO, tboRough;
+  GLuint tboBase, tboNormal, tboAO, tboRough, tboHeight;
   GLint uniModel, uniView, uniProjection;
   GLint uniEyePoint, uniLightColors, uniLightPositions;
   GLint uniTexBase, uniTexNormal;
   GLint uniTexAO, uniTexRough;
+  GLint uniTexHeight;
 
   // aabb
   vec3 min, max;
@@ -56,22 +57,22 @@ public:
   bool isPBR;
 
   /* Constructors */
-  Mesh(const string, bool);
+  Mesh(const string, bool = false);
   ~Mesh();
 
   /* Member functions */
   void initBuffers();
   void initShader();
   void initUniform();
-  void draw(mat4, mat4, mat4, vec3, vec3[], vec3[], int, int, int, int);
+  void draw(mat4, mat4, mat4, vec3, vec3[], vec3[], int, int, int, int, int);
   void setTexture(GLuint &, int, const string, FREE_IMAGE_FORMAT);
 };
 
 string readFile(const string);
 void printLog(GLuint &);
 GLint myGetUniformLocation(GLuint &, string);
-GLuint buildShader(string, string);
+GLuint buildShader(string, string, string = "", string = "");
 GLuint compileShader(string, GLenum);
-GLuint linkShader(GLuint, GLuint);
+GLuint linkShader(GLuint, GLuint, GLuint, GLuint);
 void drawBox(vec3, vec3);
 void drawPoints(vector<Point> &);

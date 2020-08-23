@@ -12,8 +12,8 @@ std::string readFile(const std::string fileName) {
 }
 
 // return a shader executable
-GLuint buildShader(string vsDir, string fsDir) {
-  GLuint vs, fs;
+GLuint buildShader(string vsDir, string fsDir, string tcsDir, string tesDir) {
+  GLuint vs, fs, tcs = 0, tes = 0;
   GLint linkOk;
   GLuint exeShader;
 
@@ -21,8 +21,14 @@ GLuint buildShader(string vsDir, string fsDir) {
   vs = compileShader(vsDir, GL_VERTEX_SHADER);
   fs = compileShader(fsDir, GL_FRAGMENT_SHADER);
 
+  // TCS, TES
+  if (tcsDir != "" && tesDir != "") {
+    tcs = compileShader(tcsDir, GL_TESS_CONTROL_SHADER);
+    tes = compileShader(tesDir, GL_TESS_EVALUATION_SHADER);
+  }
+
   // link
-  exeShader = linkShader(vs, fs);
+  exeShader = linkShader(vs, fs, tcs, tes);
 
   return exeShader;
 }
@@ -65,13 +71,19 @@ GLuint compileShader(string fileName, GLenum type) {
   return objShader;
 }
 
-GLuint linkShader(GLuint vsObj, GLuint fsObj) {
+GLuint linkShader(GLuint vsObj, GLuint fsObj, GLuint tcsObj, GLuint tesObj) {
   GLuint exe;
   GLint linkOk;
 
   exe = glCreateProgram();
   glAttachShader(exe, vsObj);
   glAttachShader(exe, fsObj);
+
+  if (tcsObj != 0 && tesObj != 0) {
+    glAttachShader(exe, tcsObj);
+    glAttachShader(exe, tesObj);
+  }
+
   glLinkProgram(exe);
 
   // check result
@@ -267,7 +279,7 @@ Mesh::~Mesh() {
 
 void Mesh::initShader() {
   string dir = "./shader/";
-  string vs, fs;
+  string vs, fs, tcs, tes;
 
   if (isPBR) {
     vs = dir + "vsPBR.glsl";
@@ -277,7 +289,10 @@ void Mesh::initShader() {
     fs = dir + "fsPhong.glsl";
   }
 
-  shader = buildShader(vs, fs);
+  tcs = dir + "tcsQuad.glsl";
+  tes = dir + "tesQuad.glsl";
+
+  shader = buildShader(vs, fs, tcs, tes);
 }
 
 void Mesh::initUniform() {
@@ -289,6 +304,7 @@ void Mesh::initUniform() {
   uniLightPositions = myGetUniformLocation(shader, "lightPositions");
   uniTexBase = myGetUniformLocation(shader, "texBase");
   uniTexNormal = myGetUniformLocation(shader, "texNormal");
+  uniTexHeight = myGetUniformLocation(shader, "texHeight");
 
   if (isPBR) {
     uniTexAO = myGetUniformLocation(shader, "texAO");
@@ -386,7 +402,7 @@ void Mesh::setTexture(GLuint &tbo, int texUnit, const string texDir,
 
 void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColors[],
                 vec3 lightPositions[], int unitBaseColor, int unitNormal,
-                int unitAO, int unitRough) {
+                int unitAO, int unitRough, int unitHeight) {
   glUseProgram(shader);
 
   glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
@@ -400,6 +416,7 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColors[],
 
   glUniform1i(uniTexBase, unitBaseColor); // change base color
   glUniform1i(uniTexNormal, unitNormal);  // change normal
+  glUniform1i(uniTexHeight, unitHeight);  // change height map
 
   if (isPBR) {
     glUniform1i(uniTexAO, unitAO);       // change ambient occlusion
@@ -410,6 +427,7 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColors[],
     int numVtxs = scene->mMeshes[i]->mNumVertices;
 
     glBindVertexArray(vaos[i]);
-    glDrawArrays(GL_TRIANGLES, 0, numVtxs);
+    // glDrawArrays(GL_TRIANGLES, 0, numVtxs);
+    glDrawArrays(GL_PATCHES, 0, numVtxs);
   }
 }
